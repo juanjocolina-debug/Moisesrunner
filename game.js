@@ -50,11 +50,32 @@ const blueCollar=new THREE.Mesh(new THREE.TorusGeometry(.37,.09,6,16),blue);blue
 for(const side of [-1,1]){const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.14,.6,4,8),white);arm.position.set(side*.58,1.55,0);arm.rotation.z=side*.22;moses.add(arm);const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.16,.56,4,8),blue);leg.position.set(side*.25,.43,0);moses.add(leg)}
 moses.position.set(0,0,4.2);
 const obstacles=[],coins=[];
-function addObstacle(lane,z,type){const x=lane*2.15;let o;if(type==='pillar'){o=new THREE.Group();const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.55,2.6,10),teal);c.position.y=1.3;o.add(c);const cap=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.32,8),gold);cap.position.y=2.7;o.add(cap);o.position.set(x,0,z);scene.add(o)}else{o=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(1.45,1.5,1.2),stone);b.position.y=.75;o.add(b);const top=new THREE.Mesh(new THREE.BoxGeometry(1.52,.2,1.25),gold);top.position.y=1.5;o.add(top);o.position.set(x,0,z);scene.add(o)}obstacles.push({obj:o,lane,z,type})}
+function addObstacle(lane,z,type){
+ const x=lane*2.15;
+ const o=new THREE.Group();
+ if(type==='pillar'){
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(.45,.55,2.6,10),teal);
+  c.position.y=1.3;o.add(c);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.32,8),gold);
+  cap.position.y=2.7;o.add(cap);
+ }else if(type==='low'){
+  const beam=new THREE.Mesh(new THREE.BoxGeometry(1.65,.72,1.05),stone);
+  beam.position.y=.42;o.add(beam);
+  const trim=new THREE.Mesh(new THREE.BoxGeometry(1.72,.12,1.1),gold);
+  trim.position.y=.79;o.add(trim);
+ }else{
+  const b=new THREE.Mesh(new THREE.BoxGeometry(1.45,1.5,1.2),stone);
+  b.position.y=.75;o.add(b);
+  const top=new THREE.Mesh(new THREE.BoxGeometry(1.52,.2,1.25),gold);
+  top.position.y=1.5;o.add(top);
+ }
+ o.position.set(x,0,z);scene.add(o);
+ obstacles.push({obj:o,lane,z,type});
+}
 function addCoin(lane,z){const c=new THREE.Mesh(new THREE.TorusGeometry(.34,.12,8,16),gold);c.position.set(lane*2.15,1.35,z);c.castShadow=true;scene.add(c);coins.push(c)}
-for(let i=0;i<18;i++){const z=-20-i*9;addObstacle(Math.floor(Math.random()*3)-1,z,Math.random()>.5?'pillar':'block');if(i%2===0)addCoin(Math.floor(Math.random()*3)-1,z-4);}
+for(let i=0;i<14;i++){const z=-25-i*13;const lane=Math.floor(Math.random()*3)-1;const type=i%4===3?'low':(Math.random()>.5?'pillar':'block');addObstacle(lane,z,type);if(i%2===0)addCoin(Math.floor(Math.random()*3)-1,z-5);}
 // State and controls
-let running=false,lane=0,speed=13,score=0,jump=0,slide=0,lastSpawn=-30;
+let running=false,lane=0,speed=8.5,score=0,jump=0,slide=0,lastSpawn=0;
 const $=s=>document.querySelector(s);
 function updateScore(){$('#coins').textContent=String(score).padStart(3,'0')}
 function move(dir){if(!running)return;lane=Math.max(-1,Math.min(1,lane+dir))}
@@ -68,16 +89,22 @@ $('#restart').onclick=()=>location.reload();
 const clock=new THREE.Clock();
 function end(){running=false;$('#finalCoins').textContent=score;$('#end').classList.remove('hidden')}
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);if(running){
- speed=Math.min(19,speed+dt*.12);const travel=speed*dt;
+ speed=Math.min(11.5,speed+dt*.06);const travel=speed*dt;
  moses.position.x+=(lane*2.15-moses.position.x)*Math.min(1,dt*12);
  if(jump>0)jump=Math.max(0,jump-dt);if(slide>0)slide=Math.max(0,slide-dt);
  moses.position.y=jump>0?Math.sin((.72-jump)/.72*Math.PI)*1.65:0;
  moses.scale.y=slide>0?.62:1;
  // Subtle running gait
  moses.rotation.z=Math.sin(clock.elapsedTime*13)*.035;
- for(const o of obstacles){o.z+=travel;o.obj.position.z=o.z;if(o.z>4.3&&o.z<5.2&&Math.abs(o.lane-lane)<.45&&moses.position.y<.7&&slide<=0)end()}
+ for(const o of obstacles){
+  o.z+=travel;o.obj.position.z=o.z;
+  const nearX=Math.abs(o.obj.position.x-moses.position.x)<.95;
+  const nearZ=Math.abs(o.z-moses.position.z)<.95;
+  const dodged=o.type==='low'?slide>0:moses.position.y>.8;
+  if(nearX&&nearZ&&!dodged)end();
+ }
  for(const c of coins){c.position.z+=travel;c.rotation.y+=dt*3;if(c.position.z>3.8&&c.position.z<5.3&&Math.abs(c.position.x-moses.position.x)<.85){score++;updateScore();c.position.z=20}}
- if(clock.elapsedTime-lastSpawn>2.2){lastSpawn=clock.elapsedTime;const z=-88;addObstacle(Math.floor(Math.random()*3)-1,z,Math.random()>.5?'pillar':'block');if(Math.random()>.3)addCoin(Math.floor(Math.random()*3)-1,z-5)}
+ if(clock.elapsedTime-lastSpawn>3.0){lastSpawn=clock.elapsedTime;const z=-95;const type=Math.random()>.76?'low':(Math.random()>.5?'pillar':'block');addObstacle(Math.floor(Math.random()*3)-1,z,type);if(Math.random()>.3)addCoin(Math.floor(Math.random()*3)-1,z-6)}
  for(let i=obstacles.length-1;i>=0;i--)if(obstacles[i].z>13){scene.remove(obstacles[i].obj);obstacles.splice(i,1)}
  for(let i=coins.length-1;i>=0;i--)if(coins[i].position.z>13){scene.remove(coins[i]);coins.splice(i,1)}
  camera.position.x+=(moses.position.x*.18-camera.position.x)*dt*2;camera.lookAt(moses.position.x*.12,1.25,-4);
