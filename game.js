@@ -2,27 +2,27 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const root = document.querySelector('#game');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9bd9dc);
-scene.fog = new THREE.Fog(0x9bd9dc, 28, 105);
+scene.background = new THREE.Color(0x70c9f5);
+scene.fog = new THREE.Fog(0x9bd9dc, 48, 145);
 const camera = new THREE.PerspectiveCamera(57, innerWidth / innerHeight, 0.1, 180);
 camera.position.set(0, 6.2, 11.5);
 camera.lookAt(0, 1.2, -5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
+renderer.toneMappingExposure = 1.28;
 root.insertBefore(renderer.domElement, root.firstChild);
 
-scene.add(new THREE.HemisphereLight(0xfff0d5, 0x718078, 2.1));
-const sun = new THREE.DirectionalLight(0xffd99a, 3.1);
+scene.add(new THREE.HemisphereLight(0xfff5df, 0xb07a4b, 2.6));
+const sun = new THREE.DirectionalLight(0xffd18a, 4.0);
 sun.position.set(-9, 17, 8);
 sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.camera.left = -16;
 sun.shadow.camera.right = 16;
 sun.shadow.camera.top = 18;
@@ -83,6 +83,43 @@ function makeTemple(x,z){
   return g;
 }
 for(let z=-19;z>-155;z-=35){makeTemple(-10,z);makeTemple(10,z-13);}
+
+function makeHeroColumn(x,z){
+  const g=group();
+  cylinder(.82,.98,6.8,M.pale,g,x,3.4,z,16);
+  cylinder(1.02,1.02,.42,M.gold,g,x,.24,z,16);
+  cylinder(1.02,1.02,.32,M.blue,g,x,.62,z,16);
+  cylinder(.91,.91,.3,M.gold,g,x,.95,z,16);
+  cylinder(1.08,1.08,.48,M.pale,g,x,6.85,z,12);
+  cylinder(1.2,1.2,.22,M.gold,g,x,7.18,z,12);
+  for(let k=0;k<8;k++){
+    const a=k*Math.PI/4;
+    const stripe=box(.13,4.8,.12,M.blue,g,x+Math.cos(a)*.84,3.6,z+Math.sin(a)*.84);
+    stripe.rotation.y=-a;
+  }
+  return g;
+}
+function makeGuardian(x,z){
+  const g=group();
+  const lion=mesh(new THREE.SphereGeometry(1,20,16),M.stone,g,x,1.45,z);
+  lion.scale.set(1.05,.72,1.65);
+  const chest=mesh(new THREE.SphereGeometry(.72,18,14),M.pale,g,x,1.85,z+.82);
+  chest.scale.set(.9,1.2,.75);
+  for(const side of [-1,1]){
+    const paw=mesh(new THREE.SphereGeometry(.36,14,12),M.pale,g,x+side*.48,.48,z+1.55);
+    paw.scale.set(.9,.65,1.25);
+    const arm=mesh(new THREE.CapsuleGeometry(.25,.85,5,10),M.stone,g,x+side*.72,1.55,z+.72);
+    arm.rotation.z=side*.22;
+  }
+  const head=mesh(new THREE.SphereGeometry(.58,20,16),M.gold,g,x,2.72,z+1.12);
+  head.scale.set(.82,1.05,.82);
+  const hood=mesh(new THREE.SphereGeometry(.72,16,12,0,Math.PI*2,0,Math.PI*.72),M.blue,g,x,2.92,z+1.08);
+  hood.scale.set(1.12,1,.9);
+  box(1.25,.16,.8,M.gold,g,x,2.2,z+1.1);
+  return g;
+}
+const foreground=[makeHeroColumn(-6.2,1.5),makeHeroColumn(6.2,-1.5),makeGuardian(-5,-10),makeGuardian(5,-20)];
+
 function makePalm(x,z){
   const g=group();
   cylinder(.2,.32,4.3,M.wood,g,x,2.15,z,9);
@@ -163,6 +200,7 @@ for(let i=0;i<8;i++) spawnPattern(-25-i*17);
 // HUD, game state and input.
 const $=s=>document.querySelector(s);
 let state='ready',lane=0,speed=12,distance=0,score=0,jumpTime=0,slideTime=0,spawnTimer=0;
+const JUMP_DURATION=1.02;
 const clock=new THREE.Clock();
 const startOverlay=$('#intro'), endOverlay=$('#end');
 const pauseButton=$('#pause');
@@ -173,7 +211,7 @@ function updateHud(){
   if(distanceNode) distanceNode.textContent=d+' m';
 }
 function move(dir){if(state!=='running')return;lane=THREE.MathUtils.clamp(lane+dir,-1,1);}
-function leap(){if(state==='running'&&jumpTime<=0&&slideTime<=0)jumpTime=.82;}
+function leap(){if(state==='running'&&jumpTime<=0&&slideTime<=0)jumpTime=JUMP_DURATION;}
 function crouch(){if(state==='running'&&jumpTime<=0)slideTime=.72;}
 function setState(next){state=next;if(pauseButton)pauseButton.textContent=next==='paused'?'CONTINUAR':'Ⅱ';}
 function startGame(){
@@ -231,8 +269,8 @@ function animate(){
     moses.position.x=THREE.MathUtils.damp(moses.position.x,laneX(lane),12,dt);
     if(jumpTime>0)jumpTime=Math.max(0,jumpTime-dt);
     if(slideTime>0)slideTime=Math.max(0,slideTime-dt);
-    const jumpProgress=jumpTime>0?1-jumpTime/.82:1;
-    const jumpY=jumpTime>0?Math.sin(jumpProgress*Math.PI)*1.75:0;
+    const jumpProgress=jumpTime>0?1-jumpTime/JUMP_DURATION:1;
+    const jumpY=jumpTime>0?Math.sin(jumpProgress*Math.PI)*2.05:0;
     body.position.y=jumpY;
     body.scale.y=slideTime>0?.62:1;
     body.rotation.z=THREE.MathUtils.lerp(body.rotation.z,slideTime>0?-.06:0,dt*10);
@@ -249,12 +287,14 @@ function animate(){
       if(item.position.z>15)item.position.z-=162;
     }
     for(const o of obstacles){
+      const previousZ=o.z;
       o.z+=travel;o.obj.position.z=o.z;
-      const aligned=Math.abs(o.obj.position.x-moses.position.x)<1.02;
-      const close=Math.abs(o.z-moses.position.z)<1.05;
-      if(aligned&&close&&!o.hit){
-        const avoided=o.type==='low'?slideTime>0:jumpY>0.9;
-        if(!avoided){o.hit=true;endGame();}
+      const aligned=Math.abs(o.obj.position.x-moses.position.x)<1.08;
+      const crossed=previousZ<=moses.position.z+0.48&&o.z>=moses.position.z-0.48;
+      if(aligned&&crossed&&!o.hit){
+        o.hit=true;
+        const avoided=o.type==='low'?slideTime>0.12:(jumpY>0.48||jumpTime>0.12);
+        if(!avoided)endGame();
       }
     }
     for(const c of coins){
