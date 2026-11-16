@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#102b35" />
+  <title>Moisés Runner · Éxodo</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main id="game">
+    <div id="hud">
+      <div class="brand">ÉXODO <span>· MOISÉS RUNNER</span></div>
+      <div class="score"><span>MONEDAS</span><strong id="coins">000</strong></div>
+    </div>
+    <div id="intro" class="overlay">
+      <div class="panel">
+        <p class="eyebrow">UNA AVENTURA BÍBLICA</p>
+        <h1>MOISÉS<br><em>RUNNER</em></h1>
+        <p>Corre por el antiguo Egipto, esquiva obstáculos y recoge monedas en tu camino.</p>
+        <button id="start">COMENZAR</button>
+        <small>Controles: ← → para cambiar de carril · ↑ para saltar · ↓ para deslizarte</small>
+      </div>
+    </div>
+    <div id="end" class="overlay hidden">
+      <div class="panel">
+        <p class="eyebrow">FIN DE LA CARRERA</p>
+        <h2>¡BUEN TRABAJO!</h2>
+        <p>Monedas recogidas: <strong id="finalCoins">0</strong></p>
+        <button id="restart">VOLVER A JUGAR</button>
+      </div>
+    </div>
+    <div id="hint">← → CAMBIAR CARRIL &nbsp; · &nbsp; ↑ SALTAR &nbsp; · &nbsp; ↓ DESLIZAR</div>
+  </main>
+  <script type="module" src="./game.js"></script>
+</body>
+</html>
