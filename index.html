@@ -11,7 +11,11 @@
   <main id="game">
     <div id="hud">
       <div class="brand">ÉXODO <span>· MOISÉS RUNNER</span></div>
-      <div class="score"><span>MONEDAS</span><strong id="coins">000</strong></div>
+      <div class="hud-right">
+        <div class="score"><span>DISTANCIA</span><strong id="distance">0 m</strong></div>
+        <div class="score"><span>MONEDAS</span><strong id="coins">000</strong></div>
+        <button id="pause" aria-label="Pausar partida">Ⅱ</button>
+      </div>
     </div>
     <div id="intro" class="overlay">
       <div class="panel">
@@ -19,14 +23,22 @@
         <h1>MOISÉS<br><em>RUNNER</em></h1>
         <p>Corre por el antiguo Egipto, esquiva obstáculos y recoge monedas en tu camino.</p>
         <button id="start">COMENZAR</button>
-        <small>Controles: ← → para cambiar de carril · ↑ para saltar · ↓ para deslizarte</small>
+        <small>← → cambiar carril · ↑ saltar · ↓ deslizarte<br>En móvil: desliza en la dirección deseada</small>
+      </div>
+    </div>
+    <div id="pausePanel" class="overlay hidden">
+      <div class="panel">
+        <p class="eyebrow">PAUSA</p>
+        <h2>¡TOMA AIRE!</h2>
+        <p>Tu aventura está detenida.</p>
+        <button id="resume">CONTINUAR</button>
       </div>
     </div>
     <div id="end" class="overlay hidden">
       <div class="panel">
         <p class="eyebrow">FIN DE LA CARRERA</p>
         <h2>¡BUEN TRABAJO!</h2>
-        <p>Monedas recogidas: <strong id="finalCoins">0</strong></p>
+        <p>Monedas: <strong id="finalCoins">0</strong><br>Distancia: <strong id="finalDistance">0 m</strong></p>
         <button id="restart">VOLVER A JUGAR</button>
       </div>
     </div>
